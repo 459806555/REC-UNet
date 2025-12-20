@@ -38,7 +38,7 @@ import LiTS_utilities.losses as losses
 from LiTS_utilities.utils import str2bool, count_params
 import pandas as pd
 import REC_UNet
-#换模型需要修改的地方
+
 arch_names = list(REC_UNet.__dict__.keys())
 loss_names = list(losses.__dict__.keys())
 loss_names.append('BCEWithLogitsLoss')
@@ -50,13 +50,13 @@ def parse_args():
                         help='models name: (default: arch+timestamp)')
     parser.add_argument('--deepsupervision', default=None,
                         help='models name: (default: arch+timestamp)')
-    # 换模型需要修改的地方
+    # Change the save path name
     parser.add_argument('--arch', '-a', metavar='ARCH', default='REC_UNet',
                         choices=arch_names,
                         help='models architecture: ' +
                              ' | '.join(arch_names) +
                              ' (default: NestedUNet)')
-    # 换数据集需要修改的地方
+    # Change the save path name
     parser.add_argument('--dataset', default="LiTS",
                         help='dataset name')
     parser.add_argument('--input-channels', default=3, type=int,
@@ -71,13 +71,12 @@ def parse_args():
                         help='loss: ' +
                              ' | '.join(loss_names) +
                              ' (default: BCEDiceLoss)')
-    # 换模型需要修改的地方
+
     parser.add_argument('--epochs', default=250, type=int, metavar='N',
                         help='number of total epochs to run')
     parser.add_argument('--early-stop', default=50, type=int,
                         metavar='N', help='early stopping (default: 30)')
 
-    # 换模型需要修改的地方
     parser.add_argument('-b', '--batch-size', default=1, type=int,
                         metavar='N', help='mini-batch size (default: 4)')
     parser.add_argument('--optimizer', default='Adam',
@@ -147,8 +146,6 @@ def test(args, val_loader, model, criterion):
     sensitivity_2s = AverageMeter()
     ppv_1s = AverageMeter()
     ppv_2s = AverageMeter()
-    # pvalue_1s = AverageMeter()
-    # pvalue_2s = AverageMeter()
     accuracy_1s = AverageMeter()
     accuracy_2s = AverageMeter()
     precision_1s = AverageMeter()
@@ -179,8 +176,7 @@ def test(args, val_loader, model, criterion):
                 sensitivity_2 = sensitivity(output[:, 1, :, :], target[:, 1, :, :])
                 ppv_1 = ppv(output[:, 0, :, :], target[:, 0, :, :])
                 ppv_2 = ppv(output[:, 1, :, :], target[:, 1, :, :])
-                # pvalue_1 = p_value_test(output, target)[0]
-                # pvalue_2 = p_value_test(output, target)[1]
+              
                 accuracy_1 = accuracy(output[:, 0, :, :], target[:, 0, :, :])
                 accuracy_2 = accuracy(output[:, 1, :, :], target[:, 1, :, :])
                 precision_1 = precision(output[:, 0, :, :], target[:, 0, :, :])
@@ -196,10 +192,6 @@ def test(args, val_loader, model, criterion):
             sensitivity_2s.update(torch.tensor(sensitivity_2), input.size(0))
             ppv_1s.update(torch.tensor(ppv_1), input.size(0))
             ppv_2s.update(torch.tensor(ppv_2), input.size(0))
-            # if not np.isnan(pvalue_1):
-            #     pvalue_1s.update(torch.tensor(pvalue_1), input.size(0))
-            # if not np.isnan(pvalue_2):
-            #     pvalue_2s.update(torch.tensor(pvalue_2), input.size(0))
             accuracy_1s.update(torch.tensor(accuracy_1), input.size(0))
             accuracy_2s.update(torch.tensor(accuracy_2), input.size(0))
             precision_1s.update(torch.tensor(precision_1), input.size(0))
@@ -216,8 +208,6 @@ def test(args, val_loader, model, criterion):
         ('sensitivity_2', sensitivity_2s.avg),
         ('ppv_1', ppv_1s.avg),
         ('ppv_2', ppv_2s.avg),
-        # ('pvalue_1s', pvalue_1s.avg),
-        # ('pvalue_2s', pvalue_2s.avg),
         ('accuracy_1', accuracy_1s.avg),
         ('accuracy_2', accuracy_2s.avg),
         ('precision_1', precision_1s.avg),
@@ -264,11 +254,11 @@ def main():
 
     print("val_num:%s" % str(len(val_img_paths)))
 
-    # create models
-    # 换模型需要修改的地方
+    # change the model
     print("=> creating models %s" % args.arch)
     model = REC_UNet.REC_UNet(args)
     model = torch.nn.DataParallel(model).cuda()
+    #For loading the model weights from the final training epochs
     path = r""
     model.load_state_dict(torch.load(path))
     print(count_params(model))
@@ -290,5 +280,6 @@ def main():
             % (val_log['loss'], val_log['dice_1'], val_log['dice_2'], val_log['iou_1'], val_log['iou_2'],
                val_log['sensitivity_1'],val_log['sensitivity_2'], val_log['accuracy_1'],val_log['accuracy_2'],
                val_log['precision_1'], val_log['precision_2']))
+
 
 main()
