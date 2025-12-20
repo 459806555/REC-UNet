@@ -37,7 +37,7 @@ import REC_UNet
 print(torch.cuda.is_available())
 print(torch.version.cuda)
 print(torch.version)
-# 换模型需要修改的地方
+
 arch_names = list(REC_UNet.__dict__.keys())
 loss_names = list(losses.__dict__.keys())
 loss_names.append('BCEWithLogitsLoss')
@@ -51,13 +51,13 @@ def parse_args():
     parser.add_argument('--deepsupervision', default=None,
                         help='models name: (default: arch+timestamp)')
 
-    # 换模型需要修改的地方
+    # Change the save path name
     parser.add_argument('--arch', '-a', metavar='ARCH', default='REC_UNet',
                         choices=arch_names,
                         help='model architecture: ' +
                              ' | '.join(arch_names) +
                              ' (default: NestedUNet)')
-    # 换数据集需要修改的地方
+    # Change the save path name
     parser.add_argument('--dataset', default="LiTS",
                         help='dataset name')
     parser.add_argument('--input-channels', default=3, type=int,
@@ -72,13 +72,13 @@ def parse_args():
                         help='loss: ' +
                              ' | '.join(loss_names) +
                              ' (default: BCEDiceLoss)')
-    # 换模型需要修改的地方
-    parser.add_argument('--epochs', default=120, type=int, metavar='N',
+    # First run: set to 100 epochs; Second run: load the last saved model from first run, set to 20 epochs and train
+    parser.add_argument('--epochs', default=100, type=int, metavar='N',
                         help='number of total epochs to run')
     parser.add_argument('--early-stop', default=50, type=int,
                         metavar='N', help='early stopping (default: 30)')
 
-    # 换模型需要修改的地方
+    # Change the batch
     parser.add_argument('-b', '--batch-size', default=4, type=int,
                         metavar='N', help='mini-batch size (default: 16)')
     parser.add_argument('--optimizer', default='Adam',
@@ -86,6 +86,7 @@ def parse_args():
                         help='loss: ' +
                              ' | '.join(['Adam', 'SGD']) +
                              ' (default: Adam)')
+    # First run: set learning rate to 3e-4 and train; Second run: load last saved model from 1st run, set lr to 1e-4 and train
     parser.add_argument('--lr', '--learning-rate', default=3e-4
                         , type=float,
                         metavar='LR', help='initial learning rate')
@@ -251,13 +252,11 @@ def main():
 
     print("train_num:%s" % str(len(train_img_paths)))
     print("val_num:%s" % str(len(val_img_paths)))
-
-    # create model
-    # 换模型需要修改的地方
+    
     print("=> creating model %s" % args.arch)
     model = REC_UNet.REC_UNet(args)
     model = torch.nn.DataParallel(model).cuda()
-
+    #For loading the model weights from the final training epochs
     # path = r""
     # model.load_state_dict(torch.load(path))
 
@@ -356,4 +355,5 @@ if __name__ == '__main__':
     print(torch.cuda.is_available())
     print(torch.version.cuda)
     os.environ['CUDA_VISIBLE_DEVICES'] = '0'
+
     main()
