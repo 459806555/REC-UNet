@@ -48,10 +48,10 @@ def parse_args():
                         help='model name: (default: arch+timestamp)')
     parser.add_argument('--deepsupervision', default=None,
                         help='models name: (default: arch+timestamp)')
-    #换模型需要修改的地方
+    # Change the save path name
     parser.add_argument('--arch', '-a', metavar='ARCH', default='REC_UNet',
                         choices=arch_names)
-    #换数据集需要修改的地方
+    # Change the save path name
     parser.add_argument('--dataset', default="MSD",
                         help='dataset name')
     parser.add_argument('--input-channels', default=3, type=int,
