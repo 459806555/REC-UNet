@@ -1,7 +1,7 @@
 ﻿REC-UNet
 
 # REC-UNet
-REC-UNet: A Residual Attention-Based U-Net Model for Enhancing Liver Tumor Segmentation
+REC-UNet: A U-Net model with residual cross-dimensional attention for liver tumor segmentation
 
 
 ## Abstract
