@@ -71,13 +71,13 @@ class SpatialGate(nn.Module):
         scale = torch.sigmoid_(x_out)
         return x * scale
 
-
-class TripletAttention(nn.Module):
+# Enhancement_Module
+class EM_block(nn.Module):
     def __init__(
         self,
         no_spatial=False,
     ):
-        super(TripletAttention, self).__init__()
+        super(EM_block, self).__init__()
         self.ChannelGateH = SpatialGate()
         self.ChannelGateW = SpatialGate()
         self.no_spatial = no_spatial
@@ -97,29 +97,30 @@ class TripletAttention(nn.Module):
         else:
             x_out = (1 / 2) * (x_out11 + x_out21)
         return x_out
-
-class Conv_block(nn.Module):
+# Residual Enhancement_Module
+        
+class REM_block(nn.Module):
     """
     Convolution Block
     """
     def __init__(self, in_ch, out_ch):
-        super(Conv_block, self).__init__()
+        super(REM_block, self).__init__()
 
         self.conv1 = nn.Sequential(
             nn.Conv2d(in_ch, out_ch, kernel_size=3, stride=1, padding=1, bias=True),
             nn.BatchNorm2d(out_ch),
             nn.ReLU(inplace=True))
-        self.EM_block = nn.Sequential(
+        self.conv2 = nn.Sequential(
             nn.Conv2d(out_ch, out_ch, kernel_size=3, stride=1, padding=1, bias=True),
             nn.BatchNorm2d(out_ch),
             nn.ReLU(inplace=True),
-            TripletAttention()
+            EM_block()
         )
 
     def forward(self, x):
 
         x1 = self.conv1(x)
-        x2 = self.EM_block(x1)
+        x2 = self.conv2(x1)
         x = (x2 + x1) * 0.5
         return x
 
@@ -140,6 +141,7 @@ class up_conv(nn.Module):
     def forward(self, x):
         x = self.up(x)
         return x
+# Calibration_Module
 class CM_block(nn.Module):
     """
     Attention Block
@@ -163,7 +165,6 @@ class CM_block(nn.Module):
             nn.BatchNorm2d(1),
             nn.Sigmoid()
         )
-        #self.attention = TripletAttention()
         self.relu = nn.ReLU(inplace=True)
 
     def forward(self, g, x):
@@ -173,7 +174,6 @@ class CM_block(nn.Module):
         psi = self.psi(psi)
         out = x * psi
         Concat_out = torch.cat((out,g ), dim=1)
-        #out = self.attention(out)
         return Concat_out
 
 
@@ -196,27 +196,27 @@ class REC_UNet(nn.Module):
         self.Maxpool3 = nn.MaxPool2d(kernel_size=2, stride=2)
         self.Maxpool4 = nn.MaxPool2d(kernel_size=2, stride=2)
 
-        self.Conv1 = Conv_block(in_ch, filters[0])
-        self.Conv2 = Conv_block(filters[0], filters[1])
-        self.Conv3 = Conv_block(filters[1], filters[2])
-        self.Conv4 = Conv_block(filters[2], filters[3])
-        self.Conv5 = Conv_block(filters[3], filters[4])
+        self.Conv1 = REM_block(in_ch, filters[0])
+        self.Conv2 = REM_block(filters[0], filters[1])
+        self.Conv3 = REM_block(filters[1], filters[2])
+        self.Conv4 = REM_block(filters[2], filters[3])
+        self.Conv5 = REM_block(filters[3], filters[4])
 
         self.Up5 = up_conv(filters[4], filters[3])
         self.Att5 = CM_block(F_g=filters[3], F_l=filters[3], F_int=filters[2])
-        self.Up_conv5 = Conv_block(filters[4], filters[3])
+        self.Up_conv5 = REM_block(filters[4], filters[3])
 
         self.Up4 = up_conv(filters[3], filters[2])
         self.Att4 = CM_block(F_g=filters[2], F_l=filters[2], F_int=filters[1])
-        self.Up_conv4 = Conv_block(filters[3], filters[2])
+        self.Up_conv4 = REM_block(filters[3], filters[2])
 
         self.Up3 = up_conv(filters[2], filters[1])
         self.Att3 = CM_block(F_g=filters[1], F_l=filters[1], F_int=filters[0])
-        self.Up_conv3 = Conv_block(filters[2], filters[1])
+        self.Up_conv3 = REM_block(filters[2], filters[1])
 
         self.Up2 = up_conv(filters[1], filters[0])
         self.Att2 = CM_block(F_g=filters[0], F_l=filters[0], F_int=32)
-        self.Up_conv2 = Conv_block(filters[1], filters[0])
+        self.Up_conv2 = REM_block(filters[1], filters[0])
 
         self.Conv = nn.Conv2d(filters[0], out_ch, kernel_size=1, stride=1, padding=0)
 
