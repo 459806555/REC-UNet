@@ -137,6 +137,7 @@ def dice_test(output, target):
 
     return dice_1, dice_2
 def test(args, val_loader, model, criterion):
+    # Metrics with suffix "1" = liver segmentation results; suffix "2" = tumor segmentation results. Only focus on tumor segmentation here.
     losses = AverageMeter()
     ious_1 = AverageMeter()
     ious_2 = AverageMeter()
@@ -274,7 +275,7 @@ def main():
 
     with torch.no_grad():
         val_log = test(args, val_loader, model, criterion)
-
+# Metrics with suffix "1" = liver segmentation results; suffix "2" = tumor segmentation results. Only focus on tumor segmentation here.
         print(
             'loss %.4f - dice1 %.4f - dice2 %.4f - iou_1 %.4f - iou_2 %.4f - recall_1 %.4f - recall_2 %.4f - acc_1 %.4f - acc_2 %.4f - precision_1 %.4f - precision_2 %.4f'
             % (val_log['loss'], val_log['dice_1'], val_log['dice_2'], val_log['iou_1'], val_log['iou_2'],
@@ -283,3 +284,4 @@ def main():
 
 
 main()
+
