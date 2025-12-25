@@ -24,7 +24,7 @@ class Dataset(torch.utils.data.Dataset):
     def __getitem__(self, idx):
         img_path = self.img_paths[idx]
         mask_path = self.mask_paths[idx]
-        #读numpy数据(npy)的代码
+        #Read numpy data (npy)
         npimage = np.load(img_path)
         npmask = np.load(mask_path)
 
