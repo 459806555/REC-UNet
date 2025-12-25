@@ -140,6 +140,7 @@ def dice_test(output, target):
 
     return dice_1, dice_2
 def test(args, val_loader, model, criterion):
+    # Metrics with suffix "1" = hepatic vessel segmentation; suffix "2" = hepatic tumor segmentation. Only focus on tumor segmentation here.
     losses = AverageMeter()
     ious_1 = AverageMeter()
     ious_2 = AverageMeter()
@@ -254,7 +255,7 @@ def main():
         drop_last=False)
     with torch.no_grad():
         val_log = test(args, val_loader, model, criterion)
-
+# Metrics with suffix "1" = hepatic vessel segmentation; suffix "2" = hepatic tumor segmentation. Only focus on tumor segmentation here.
         print(
             'loss %.4f - dice %.4f - iou %.4f - recall %.4f  - acc %.4f - precision %.4f'
             % (val_log['loss'], val_log['dice_2'], val_log['iou_2'],
@@ -264,6 +265,7 @@ def main():
 os.environ['CUDA_VISIBLE_DEVICES'] = '0'
 
 main()
+
 
 
 
