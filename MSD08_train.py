@@ -66,13 +66,13 @@ def parse_args():
                         help='loss: ' +
                             ' | '.join(loss_names) +
                             ' (default: BCEDiceLoss)')
-    #换模型需要修改的地方
+    # epoch defaults to 200
     parser.add_argument('--epochs', default=200, type=int, metavar='N',
                         help='number of total epochs to run')
     parser.add_argument('--early-stop', default=50, type=int,
                         metavar='N', help='early stopping (default: 30)')
     
-    #换模型需要修改的地方
+    # batch-size defaults to 4
     parser.add_argument('-b', '--batch-size', default=4, type=int,
                         metavar='N', help='mini-batch size (default: 16)')
     parser.add_argument('--optimizer', default='Adam',
@@ -80,6 +80,7 @@ def parse_args():
                         help='loss: ' +
                             ' | '.join(['Adam', 'SGD']) +
                             ' (default: Adam)')
+    # learning-rate defaults to 3e-4
     parser.add_argument('--lr', '--learning-rate', default=3e-4, type=float,
                         metavar='LR', help='initial learning rate')
     parser.add_argument('--momentum', default=0.9, type=float,
@@ -114,7 +115,6 @@ class AverageMeter(object):
 def train(args, train_loader, model, criterion, optimizer, epoch):
     losses = AverageMeter()
     ious = AverageMeter()
-    #dices_1s = AverageMeter()
     dices_2s = AverageMeter()
     model.train()
 
@@ -134,12 +134,10 @@ def train(args, train_loader, model, criterion, optimizer, epoch):
             output = model(input)
             loss = criterion(output, target)
             iou = iou_score(output, target)
-            #dice_1 = dice_coef(output, target)[0]
             dice_2 = dice_coef(output, target)[1]
 
         losses.update(loss.item(), input.size(0))
         ious.update(iou, input.size(0))
-        #dices_1s.update(torch.tensor(dice_1), input.size(0))
         dices_2s.update(torch.tensor(dice_2), input.size(0))
 
         # compute gradient and do optimizing step
@@ -150,7 +148,6 @@ def train(args, train_loader, model, criterion, optimizer, epoch):
     log = OrderedDict([
         ('loss', losses.avg),
         ('iou', ious.avg),
-        #('dice_1', dices_1s.avg),
         ('dice_2', dices_2s.avg)
     ])
 
@@ -182,18 +179,14 @@ def validate(args, val_loader, model, criterion):
                 output = model(input)
                 loss = criterion(output, target)
                 iou = iou_score(output, target)
-                #dice_1 = dice_coef(output, target)[0]
                 dice_2 = dice_coef(output, target)[1]
-
             losses.update(loss.item(), input.size(0))
             ious.update(iou, input.size(0))
-            #dices_1s.update(torch.tensor(dice_1), input.size(0))
             dices_2s.update(torch.tensor(dice_2), input.size(0))
 
     log = OrderedDict([
         ('loss', losses.avg),
         ('iou', ious.avg),
-        #('dice_1', dices_1s.avg),
         ('dice_2', dices_2s.avg)
     ])
 
@@ -243,13 +236,8 @@ def main():
     print("val_num:%s"%str(len(val_img_paths)))
 
     # create model
-    #换模型需要修改的地方
+
     print("=> creating model %s" %args.arch)
-    #model = VMUnet.VMUNet(3, 2)
-    #model = swinunet.SwinUnet(args)
-    #model = U_KAN.UKAN(args)
-    #model = Unet3Plus.UNet_3Plus(args)
-    #model = ResTATTUnet.ECU_Net(args)
     model = REC_UNet.REC_UNet(args)
     model = torch.nn.DataParallel(model).cuda()
 
@@ -261,9 +249,6 @@ def main():
         optimizer = optim.SGD(filter(lambda p: p.requires_grad, model.parameters()), lr=args.lr,
             momentum=args.momentum, weight_decay=args.weight_decay, nesterov=args.nesterov)
     
-    # scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=100, gamma=0.5)
-    # scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=10, eta_min=0, last_epoch=-1)
-
 
     train_dataset = Dataset(args, train_img_paths, train_mask_paths, args.aug)
     val_dataset = Dataset(args, val_img_paths, val_mask_paths)
