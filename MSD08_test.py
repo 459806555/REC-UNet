@@ -251,13 +251,12 @@ def main():
     print("val_num:%s" % str(len(val_img_paths)))
 
     # create models
-    # 换模型需要修改的地方
     print("=> creating models %s" % args.arch)
     model = REC_UNet.REC_UNet(args)
     model = torch.nn.DataParallel(model).cuda()
-    #path = r""
-    # path = r"E:\liver_project\myUnet\LITS2017-main1-master\models\result\UNET\epoch150-0.9714-0.8425_model.pth"
-    #model.load_state_dict(torch.load(path))
+    #For loading the model weights from the final training epochs
+    path = r""
+    model.load_state_dict(torch.load(path))
 
     print(count_params(model))
 
@@ -282,4 +281,5 @@ def main():
 os.environ['CUDA_VISIBLE_DEVICES'] = '0'
 
 main()
+
 
