@@ -36,7 +36,6 @@ from MSD08_utilities.utils import str2bool, count_params
 import pandas as pd
 import REC_UNet
 
-#换模型需要修改的地方
 arch_names = list(REC_UNet.__dict__.keys())
 loss_names = list(losses.__dict__.keys())
 loss_names.append('BCEWithLogitsLoss')
