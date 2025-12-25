@@ -76,6 +76,8 @@ python LiTS_train.py --epochs 20 --lr 0.0001
 cd REC-UNet
 python MSD08_train.py --epochs 200 --lr 0.0003
 ```
-
+3.3 Clinical Liver Tumor MRI Dataset
+The clinical dataset adopts the same training and testing pipelines as well as parameters as the MSD_Task08 dataset, with the only difference being the number of channels. This is because the clinical dataset only has a single-channel mask for tumors, while MSD_Task08 features a two-channel mask (covering both hepatic vessels and hepatic tumors).
+The clinical datasets are not publicly available due to ethical and privacy restrictions.
 
 
