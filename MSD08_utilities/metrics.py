@@ -114,27 +114,23 @@ def iou_score(output, target):
 
 def iou_score_batch(output, target):
     smooth = 1e-5
-    batch_size = output.size(0)  # 假设output和target的第一个维度是batch大小
+    batch_size = output.size(0)  
     ious = []
 
     for i in range(batch_size):
-        # 对于batch中的每张图像，分别提取输出和目标
         out_i = output[i]
         if torch.is_tensor(out_i):
-            out_i = torch.sigmoid(out_i).detach().cpu().numpy()  # 使用detach避免梯度追踪
+            out_i = torch.sigmoid(out_i).detach().cpu().numpy()  
         tar_i = target[i]
         if torch.is_tensor(tar_i):
             tar_i = tar_i.detach().cpu().numpy()
 
-            # 二值化
         output_i = out_i > 0.5
         target_i = tar_i > 0.5
 
-        # 计算交集和并集
         intersection = np.logical_and(output_i, target_i).sum()
         union = np.logical_or(output_i, target_i).sum()
 
-        # 计算IoU并添加到列表中
         ious.append((intersection + smooth) / (union + smooth))
     ious = np.array(ious)
     iou = ious.sum() / batch_size
@@ -264,55 +260,29 @@ def accuracy(output, target):
 
 
 def precision(output, target, threshold=0.5, smooth=1e-5):
-    """
-    计算精确率（Precision），支持 PyTorch 张量（CUDA/CPU）和 NumPy 数组输入
-
-    参数:
-        output: 模型输出（概率值或二值张量/数组）
-        target: 真实标签（二值张量/数组或概率值）
-        threshold: 二值化阈值（默认0.5，适用于概率输出）
-        smooth: 平滑项（避免除零错误）
-
-    返回:
-        精确率（数值在0-1之间）
-    """
-    # 处理 PyTorch 张量（CUDA/CPU） -> 转换为 NumPy 数组
+    
     if isinstance(output, torch.Tensor):
-        output = output.detach().cpu().numpy()  # 安全获取数据（替代 .data）
+        output = output.detach().cpu().numpy()  
     if isinstance(target, torch.Tensor):
         target = target.detach().cpu().numpy()
 
-    # 二值化处理（将概率/连续值转为0/1）
-    output_binary = (output > threshold).astype(np.int32)  # 预测为正例（>threshold）
-    target_binary = (target > threshold).astype(np.int32)  # 真实正例（假设target可能是概率值）
+    output_binary = (output > threshold).astype(np.int32)  
+    target_binary = (target > threshold).astype(np.int32) 
 
-    # 计算真正例 (TP) 和假正例 (FP)
-    TP = (output_binary * target_binary).sum()  # 预测和真实都为1的位置
-    FP = (output_binary - output_binary * target_binary).sum()  # 预测为1但真实为0的位置
+    TP = (output_binary * target_binary).sum()  
+    FP = (output_binary - output_binary * target_binary).sum()  
 
-    # 计算精确率（添加平滑项避免除零）
     precision_score = (TP + smooth) / (TP + FP + smooth)
     return precision_score
 
 
 def F1_score(output, target, threshold=0.5, smooth=1e-5):
-    """
-    计算 F1 分数，依赖 precision 和 sensitivity（召回率）函数
-
-    参数:
-        output: 模型输出（概率值或二值张量/数组）
-        target: 真实标签（二值张量/数组或概率值）
-        threshold: 二值化阈值（默认0.5）
-        smooth: 平滑项（避免除零错误）
-
-    返回:
-        F1 分数（数值在0-1之间）
-    """
-    # 计算精确率和召回率
+    
+  
     p = precision(output, target, threshold=threshold, smooth=smooth)
-    r = sensitivity(output, target)  # 复用你的 sensitivity 函数（需调整）
+    r = sensitivity(output, target) 
 
-    # 计算 F1 分数（添加平滑项避免分母为零）
+   
     f1 = (2 * p * r + smooth) / (p + r + smooth)
     return f1
 def ppv(output, target):
@@ -341,35 +311,27 @@ def sensitivity(output, target):
 
     return (intersection + smooth) / \
         (target.sum() + smooth)
-#
-# output = torch.rand(3, 2, 448, 448)  # 随机生成预测输出
-# target = torch.randint(0, 2, (3, 2, 448, 448)).float()
-# dice_scores_batch1, dice_scores_batch2 = dice_coef(output, target)
-# print(dice_scores_batch1, dice_scores_batch2)
+
 
 
 def p_value_test(output, target):
-    # 转换为 NumPy 数组
+
     if torch.is_tensor(output):
         output = output.detach().cpu().numpy()
     if torch.is_tensor(target):
         target = target.detach().cpu().numpy()
 
-    # 提取肝脏 (channel 0) 和肿瘤 (channel 1) 的分割区域
     output_liver = (output[:, 0, :, :] > 0.5).astype(int)
     output_tumor = (output[:, 1, :, :] > 0.5).astype(int)
     target_liver = (target[:, 0, :, :] > 0.5).astype(int)
     target_tumor = (target[:, 1, :, :] > 0.5).astype(int)
 
-    # 展平为一维数组
     output_1_flat = output_liver.flatten()
     target_1_flat = target_liver.flatten()
     output_2_flat = output_tumor.flatten()
     target_2_flat = target_tumor.flatten()
 
-    # 肝脏区域配对 Wilcoxon 检验
-    p_value_1 = stats.ttest_ind(output_1_flat, target_1_flat, equal_var=False)[1]  # 肝脏
-    p_value_2 = stats.ttest_ind(output_2_flat, target_2_flat, equal_var=False)[1]  # 肿瘤
-    # p_value_1_wilcoxon = stats.wilcoxon(output_1_flat, target_1_flat)[1]  # Wilcoxon 检验
-     # p_value_2_wilcoxon = stats.wilcoxon(output_2_flat, target_2_flat)[1]  # Wilcoxon 检验
+    p_value_1 = stats.ttest_ind(output_1_flat, target_1_flat, equal_var=False)[1] 
+    p_value_2 = stats.ttest_ind(output_2_flat, target_2_flat, equal_var=False)[1]  
+
     return p_value_1, p_value_2
