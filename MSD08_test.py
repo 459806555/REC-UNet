@@ -38,7 +38,7 @@ import MSD08_utilities.losses as losses
 from MSD08_utilities.utils import str2bool, count_params
 import pandas as pd
 import REC_UNet
-#换模型需要修改的地方
+
 arch_names = list(REC_UNet.__dict__.keys())
 loss_names = list(losses.__dict__.keys())
 loss_names.append('BCEWithLogitsLoss')
@@ -50,7 +50,7 @@ def parse_args():
                         help='models name: (default: arch+timestamp)')
     parser.add_argument('--deepsupervision', default=None,
                         help='models name: (default: arch+timestamp)')
-    # 换模型需要修改的地方
+    # 
     parser.add_argument('--arch', '-a', metavar='ARCH', default='REC_UNet',
                         choices=arch_names,
                         help='models architecture: ' +
@@ -290,4 +290,5 @@ def main():
 
 
 os.environ['CUDA_VISIBLE_DEVICES'] = '0'
+
 main()
