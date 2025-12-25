@@ -277,11 +277,11 @@ def main():
         val_log = test(args, val_loader, model, criterion)
 # Metrics with suffix "1" = liver segmentation results; suffix "2" = tumor segmentation results. Only focus on tumor segmentation here.
         print(
-            'loss %.4f - dice1 %.4f - dice2 %.4f - iou_1 %.4f - iou_2 %.4f - recall_1 %.4f - recall_2 %.4f - acc_1 %.4f - acc_2 %.4f - precision_1 %.4f - precision_2 %.4f'
-            % (val_log['loss'], val_log['dice_1'], val_log['dice_2'], val_log['iou_1'], val_log['iou_2'],
-               val_log['sensitivity_1'],val_log['sensitivity_2'], val_log['accuracy_1'],val_log['accuracy_2'],
-               val_log['precision_1'], val_log['precision_2']))
+            'loss %.4f - dice %.4f - iou %.4f - recall %.4f  - acc %.4f - precision %.4f'
+            % (val_log['loss'], val_log['dice_2'], val_log['iou_2'],
+               val_log['sensitivity_2'], val_log['accuracy_2'], val_log['precision_2']))
 
 
 main()
+
 
