@@ -145,16 +145,12 @@ def test(args, val_loader, model, criterion):
     ious_2 = AverageMeter()
     dices_1s = AverageMeter()
     dices_2s = AverageMeter()
-    sensitivity_1s = AverageMeter()
-    sensitivity_2s = AverageMeter()
-    ppv_1s = AverageMeter()
-    ppv_2s = AverageMeter()
+    recall_1s = AverageMeter()
+    recall_2s = AverageMeter()
     accuracy_1s = AverageMeter()
     accuracy_2s = AverageMeter()
     precision_1s = AverageMeter()
     precision_2s = AverageMeter()
-    F1_score_1s = AverageMeter()
-    F1_score_2s = AverageMeter()
     model.eval()
 
     with torch.no_grad():
@@ -175,48 +171,35 @@ def test(args, val_loader, model, criterion):
                 iou_2 = iou_score_batch(output[:, 1, :, :], target[:, 1, :, :])
                 dice_1 = dice_test(output, target)[0]
                 dice_2 = dice_test(output, target)[1]
-                sensitivity_1 = sensitivity(output[:, 0, :, :], target[:, 0, :, :])
-                sensitivity_2 = sensitivity(output[:, 1, :, :], target[:, 1, :, :])
-                ppv_1 = ppv(output[:, 0, :, :], target[:, 0, :, :])
-                ppv_2 = ppv(output[:, 1, :, :], target[:, 1, :, :])
+                recall_1 = sensitivity(output[:, 0, :, :], target[:, 0, :, :])
+                recall_2 = sensitivity(output[:, 1, :, :], target[:, 1, :, :])
                 accuracy_1 = accuracy(output[:, 0, :, :], target[:, 0, :, :])
                 accuracy_2 = accuracy(output[:, 1, :, :], target[:, 1, :, :])
                 precision_1 = precision(output[:, 0, :, :], target[:, 0, :, :])
                 precision_2 = precision(output[:, 1, :, :], target[:, 1, :, :])
-                F1_score_1 = F1_score(output[:, 0, :, :], target[:, 0, :, :])
-                F1_score_2 = F1_score(output[:, 1, :, :], target[:, 1, :, :])
             losses.update(loss.item(), input.size(0))
             ious_1.update(iou_1, input.size(0))
             ious_2.update(iou_2, input.size(0))
             dices_1s.update(torch.tensor(dice_1), input.size(0))
             dices_2s.update(torch.tensor(dice_2), input.size(0))
-            sensitivity_1s.update(torch.tensor(sensitivity_1), input.size(0))
-            sensitivity_2s.update(torch.tensor(sensitivity_2), input.size(0))
-            ppv_1s.update(torch.tensor(ppv_1), input.size(0))
-            ppv_2s.update(torch.tensor(ppv_2), input.size(0))
+            recall_1s.update(torch.tensor(recall_1), input.size(0))
+            recall_2s.update(torch.tensor(recall_2), input.size(0))
             accuracy_1s.update(torch.tensor(accuracy_1), input.size(0))
             accuracy_2s.update(torch.tensor(accuracy_2), input.size(0))
             precision_1s.update(torch.tensor(precision_1), input.size(0))
             precision_2s.update(torch.tensor(precision_2), input.size(0))
-            F1_score_1s.update(torch.tensor(F1_score_1), input.size(0))
-            F1_score_2s.update(torch.tensor(F1_score_2), input.size(0))
     log = OrderedDict([
         ('loss', losses.avg),
         ('iou_1', ious_1.avg),
         ('iou_2', ious_2.avg),
         ('dice_1', dices_1s.avg),
         ('dice_2', dices_2s.avg),
-        ('sensitivity_1', sensitivity_1s.avg),
-        ('sensitivity_2', sensitivity_2s.avg),
-        ('ppv_1', ppv_1s.avg),
-        ('ppv_2', ppv_2s.avg),
+        ('recall_1', recall_1s.avg),
+        ('recall_2', recall_2s.avg),
         ('accuracy_1', accuracy_1s.avg),
         ('accuracy_2', accuracy_2s.avg),
         ('precision_1', precision_1s.avg),
         ('precision_2', precision_2s.avg),
-        ('F1_score_1', F1_score_1s.avg),
-        ('F1_score_2', F1_score_2s.avg),
-
     ])
     return log
 def main():
@@ -275,11 +258,12 @@ def main():
         print(
             'loss %.4f - dice %.4f - iou %.4f - recall %.4f  - acc %.4f - precision %.4f'
             % (val_log['loss'], val_log['dice_2'], val_log['iou_2'],
-               val_log['sensitivity_2'], val_log['accuracy_2'], val_log['precision_2']))
+               val_log['recall_2'], val_log['accuracy_2'], val_log['precision_2']))
 
 
 os.environ['CUDA_VISIBLE_DEVICES'] = '0'
 
 main()
+
 
 
