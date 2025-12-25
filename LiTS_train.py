@@ -169,6 +169,7 @@ def train(args, train_loader, model, criterion, optimizer, epoch):
 
 
 def validate(args, val_loader, model, criterion):
+    # Metrics with suffix "1" = liver segmentation results; suffix "2" = tumor segmentation results. Only focus on tumor segmentation here.
     losses = AverageMeter()
     ious = AverageMeter()
     dices_1s = AverageMeter()
@@ -357,4 +358,5 @@ if __name__ == '__main__':
     os.environ['CUDA_VISIBLE_DEVICES'] = '0'
 
     main()
+
 
